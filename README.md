@@ -76,21 +76,80 @@ yarn build
 
 ## Паттерн проектирования
 
-### Основной паттерн: MVP (Model-View-Presenter) с Event-Driven Architecture
+Проект реализует паттерн MVP с событийно-ориентированной архитектурой для обеспечения слабой связанности компонентов.
 
-Проект реализует паттерн MVP с расширенной архитектурой, включающей:
-- **Model Layer**: Управление данными и бизнес-логикой
-- **View Layer**: Отображение UI компонентов
-- **Presenter Layer**: Обработка пользовательских действий и координация между Model и View
-- **Событийно-ориентированный подход**: Использование EventEmitter для декуплирования компонентов
+### Структура паттерна:
+- **Model** - управление данными и бизнес-логикой
+- **View** - отображение UI компонентов
+- **Presenter** - координация между Model и View
+- **EventEmitter** - обеспечивает коммуникацию между слоями
+
+---
+
+## Слой Модели (Model Layer)
+
+### Классы данных
+
+#### **`IProduct` (src/types/index.ts)**
+**Главная задача**: Определяет структуру товара в системе
+- **Поля**:
+  - `id: string` - уникальный идентификатор товара
+  - `title: string` - название товара
+  - `price: number` - цена в рублях
+  - `category: string` - категория товара
+  - `image: string` - URL изображения
+  - `description: string` - описание товара
+
+#### **`IOrder` (src/types/index.ts)**
+**Главная задача**: Структура заказа для оформления покупки
+- **Поля**:
+  - `payment: string` - способ оплаты
+  - `email: string` - email покупателя
+  - `phone: string` - телефон покупателя
+  - `address: string` - адрес доставки
+  - `total: number` - общая сумма заказа
+  - `items: string[]` - массив ID товаров
+
+#### **`ISuccess` (src/types/index.ts)**
+**Главная задача**: Ответ об успешном оформлении заказа
+- **Поля**:
+  - `id: string` - ID заказа
+  - `total: number` - итоговая сумма
+
+#### **`IBasketItem` (src/components/Basket.ts)**
+**Главная задача**: Элемент корзины покупок
+- **Поля**:
+  - `id: string` - ID товара
+  - `title: string` - название товара
+  - `price: number` - цена за единицу
+  - `quantity: number` - количество товара
+
+### Сервисы и API
+
+#### **`CustomAPI` (src/components/CustomAPI.ts)**
+**Главная задача**: Сервис работы с backend API
+- **Поля**:
+  - `cdn: string` - базовый URL для изображений
+  - `baseUrl: string` - базовый URL API
+- **Методы**:
+  - `getProductList(): Promise<IProduct[]>` - получение списка товаров
+  - `orderResult(order: IOrder): Promise<ISuccess>` - отправка заказа
+
+#### **`Api` (src/components/base/api.ts)**
+**Главная задача**: Базовый класс для HTTP запросов
+- **Методы**:
+  - `get(uri: string): Promise<object>` - GET запрос
+  - `post(uri: string, data: object): Promise<object>` - POST запрос
+
+---
 
 ## Слой Представления (View Layer)
 
 ### Компоненты отображения
 
 #### **`Item` (src/components/Item.ts)**
-**Назначение**: Отображение карточки товара в каталоге
-- **Ключевые свойства**:
+**Главная задача**: Отображение карточки товара в каталоге
+- **Поля**:
   - `id: string` - уникальный идентификатор товара
   - `title: string` - название товара
   - `price: number` - цена товара
@@ -102,8 +161,8 @@ yarn build
   - Обработка кликов для открытия превью и добавления в корзину
 
 #### **`Page` (src/components/Page.ts)**
-**Назначение**: Главная страница приложения
-- **Ключевые свойства**:
+**Главная задача**: Главная страница приложения
+- **Поля**:
   - `basketCounter: number` - счетчик товаров в корзине
   - `catalogContainer: HTMLElement` - контейнер для каталога товаров
 - **Методы**:
@@ -114,15 +173,15 @@ yarn build
   - `getItemById(id: string): any` - получение товара по ID
 
 #### **`Modal` (src/components/Modal.ts)**
-**Назначение**: Базовый компонент модальных окон
+**Главная задача**: Базовый компонент модальных окон
 - **Методы**:
   - `open(): void` - открытие модального окна
   - `close(): void` - закрытие модального окна
   - `setContent(content: HTMLElement): void` - установка контента
 
 #### **`Basket` (src/components/Basket.ts)**
-**Назначение**: Корзина покупок
-- **Ключевые свойства**:
+**Главная задача**: Корзина покупок
+- **Поля**:
   - `items: IBasketItem[]` - массив товаров в корзине
   - `total: number` - общая стоимость
 - **Методы**:
@@ -135,22 +194,24 @@ yarn build
   - `hasItem(id: string): boolean` - проверка наличия товара
 
 #### **`Form` (src/components/Form.ts)**
-**Назначение**: Формы заказа и контактных данных
+**Главная задача**: Формы заказа и контактных данных
 - **Методы**:
   - Валидация и отправка данных заказа
   - Управление состоянием формы
   - Обработка событий формы
 
 #### **`Success` (src/components/Success.ts)**
-**Назначение**: Компонент успешного оформления заказа
+**Главная задача**: Компонент успешного оформления заказа
 - **Отображение**: Итоговая сумма и подтверждение заказа
+
+---
 
 ## Слой Презентера (Presenter Layer)
 
 ### Презентеры
 
 #### **`ItemPresenter` (src/components/ItemPresenter.ts)**
-**Назначение**: Управление отображением товаров и обработка действий
+**Главная задача**: Управление отображением товаров и обработка действий
 - **Методы**:
   - `displayItems(items: any[]): void` - отображение списка товаров
   - `handleItemPreview(itemId: string): void` - обработка превью товара
@@ -158,7 +219,7 @@ yarn build
   - `init(): void` - инициализация обработчиков событий
 
 #### **`BasketPresenter` (src/components/BasketPresenter.ts)**
-**Назначение**: Управление корзиной и логикой оформления заказа
+**Главная задача**: Управление корзиной и логикой оформления заказа
 - **Методы**:
   - `handleAddToBasket(item: IBasketItem): void` - добавление в корзину
   - `handleRemoveFromBasket(itemId: string): void` - удаление из корзины
@@ -167,71 +228,23 @@ yarn build
   - `openBasket(): void` - открытие корзины
   - `init(): void` - инициализация обработчиков событий
 
-## Слой Модели (Model Layer)
+---
 
-### Модели данных
+## Система событий (Event Layer)
 
-#### **`IProduct` (src/types/index.ts)**
-**Структура товара**:
-- `id: string` - уникальный идентификатор
-- `title: string` - название товара
-- `price: number` - цена
-- `category: string` - категория
-- `image: string` - URL изображения
-- `description: string` - описание
-
-#### **`IOrder` (src/types/index.ts)**
-**Структура заказа**:
-- `payment: string` - способ оплаты
-- `email: string` - email покупателя
-- `phone: string` - телефон покупателя
-- `address: string` - адрес доставки
-- `total: number` - общая сумма заказа
-- `items: string[]` - массив ID товаров
-
-#### **`ISuccess` (src/types/index.ts)**
-**Структура ответа об успешном заказе**:
-- `id: string` - ID заказа
-- `total: number` - итоговая сумма
-
-#### **`IBasketItem` (src/components/Basket.ts)**
-**Структура элемента корзины**:
-- `id: string` - ID товара
-- `title: string` - название
-- `price: number` - цена
-- `quantity: number` - количество одной единицы товара
-
-### Сервисы и API
-
-#### **`CustomAPI` (src/components/CustomAPI.ts)**
-**Назначение**: Сервис работы с backend API
-- **Методы**:
-  - `getProductList(): Promise<IProduct[]>` - получение списка товаров
-  - `orderResult(order: IOrder): Promise<ISuccess>` - отправка заказа
-- **Конструктор**: `CustomAPI(cdn: string, baseUrl: string)`
-
-#### **`Api` (src/components/base/api.ts)**
-**Назначение**: Базовый класс для HTTP запросов
-- **Методы**:
-  - `get(uri: string): Promise<object>` - GET запрос
-  - `post(uri: string, data: object): Promise<object>` - POST запрос
-- **Типы**:
-  - `ApiListResponse<Type>` - ответ списка с пагинацией
-  - `ApiPostMethods` - методы POST, PUT, DELETE
-
-## Слой Событий (Event Layer)
-
-### EventEmitter система
-
-#### **`EventEmitter` (src/components/base/events.ts)**
-**Назначение**: Централизованная система событий для коммуникации между компонентами
+### **`EventEmitter` (src/components/base/events.ts)**
+**Главная задача**: Централизованная система событий для коммуникации между компонентами
 - **Ключевые методы**:
   - `on<T>(event: string, callback: (data: T) => void): void` - подписка на событие
   - `emit<T>(event: string, data?: T): void` - генерация события
   - `off(event: string, callback: Function): void` - отписка от события
   - `trigger<T>(event: string, context?: Partial<T>): (data: T) => void` - создание триггера
 
-### Основные события системы
+---
+
+## Взаимодействие между слоями через EventEmitter
+
+### Пользовательские события:
 
 #### **События корзины**:
 - `basket:open` - открытие корзины
