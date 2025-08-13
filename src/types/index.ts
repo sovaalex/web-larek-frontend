@@ -1,40 +1,22 @@
 export interface IProduct {
     id: string;
     title: string;
-    category?: string;
-    description?: string;
     price: number;
+    category: string;
     image: string;
-}
-
-export interface IBasketItem {
-    productId: string;
-    quantity: number;
-    price: number;
-}
-
-export interface IOrderData {
-    address: string;
-    paymentMethod: string;
-    contacts: IContactData;
-}
-
-export interface IContactData {
-    email: string;
-    phone: string;
-}
-
-export interface ICatalog {
-    loadProducts(adress?: string): Promise<void>;
-    renderProducts(products: IProduct[]): void;
+    description: string;
 }
 
 export interface IOrder {
-    start(): void;
-    close(): void;
+    payment: string;
+    email: string;
+    phone: string;
+    address: string;
+    total: number;
+    items: string[];
 }
 
-export interface IModalOptions {
-    templateId: string;
-    data: Record<string, any>;
+export interface ISuccess {
+    id: string;
+    total: number;
 }

@@ -76,96 +76,182 @@ yarn build
 
 ## Паттерн проектирования
 
-В проекте используется паттерн **MVC (Model-View-Controller)**.
+### Основной паттерн: MVP (Model-View-Presenter) с Event-Driven Architecture
 
-### Группировка классов по слоям паттерна
+Проект реализует паттерн MVP с расширенной архитектурой, включающей:
+- **Model Layer**: Управление данными и бизнес-логикой
+- **View Layer**: Отображение UI компонентов
+- **Presenter Layer**: Обработка пользовательских действий и координация между Model и View
+- **Событийно-ориентированный подход**: Использование EventEmitter для декуплирования компонентов
 
-#### Представление 
-- **Catalog** (src/components/catalog.ts)  
-  Загружает и отображает список товаров.
-- **Card** (src/components/card.ts)  
-  Отображает карточку товара и обрабатывает открытие модального окна.
-- **CardPreview** (src/components/cardPreview.ts)  
-  Модальное окно с подробной информацией о товаре и добавлением в корзину.
-- **Modal** (src/components/modal.ts)  
-  Базовый компонент модальных окон.
-- **Order** (src/components/order.ts)  
-  Многошаговая форма оформления заказа.
-- **Basket** (src/components/basket.ts)  
-  Отображает содержимое корзины и управляет элементами.
+## Слой Представления (View Layer)
 
-### Описание классов
+### Компоненты отображения
 
-- **Catalog**  
-  - Задача: загрузка и отображение списка товаров каталога.  
-  - Поля:  
-    - `container`: HTMLElement для рендера товаров  
-    - `api`: объект для выполнения запросов  
-  - Методы:  
-    - `loadProducts(url?: string)`: загружает товары с сервера  
-    - `renderProducts(products: IProduct[])`: отображает товары в контейнере
+#### **`Item` (src/components/Item.ts)**
+**Назначение**: Отображение карточки товара в каталоге
+- **Ключевые свойства**:
+  - `id: string` - уникальный идентификатор товара
+  - `title: string` - название товара
+  - `price: number` - цена товара
+  - `category: string` - категория товара
+  - `image: string` - URL изображения
+  - `description: string` - описание товара
+- **Методы**:
+  - `render(product: IProduct): HTMLElement` - рендеринг карточки товара
+  - Обработка кликов для открытия превью и добавления в корзину
 
-- **Card**  
-  - Задача: отображение карточки товара и обработка клика для открытия подробной информации.  
-  - Поля:  
-    - `product`: объект товара  
-    - `element`: HTMLElement карточки  
-    - `cardPreview`: экземпляр CardPreview для модального окна  
-  - Методы:  
-    - `createCardElement()`: создает DOM-элемент карточки  
-    - `openModal()`: открывает модальное окно с подробностями  
-    - `getElement()`: возвращает DOM-элемент карточки
+#### **`Page` (src/components/Page.ts)**
+**Назначение**: Главная страница приложения
+- **Ключевые свойства**:
+  - `basketCounter: number` - счетчик товаров в корзине
+  - `catalogContainer: HTMLElement` - контейнер для каталога товаров
+- **Методы**:
+  - `setBasketCounter(count: number): void` - обновление счетчика корзины
+  - `appendToCatalog(element: HTMLElement): void` - добавление товара в каталог
+  - `toggleScroll(lock: boolean): void` - блокировка/разблокировка прокрутки
+  - `clearCatalog(): void` - очистка каталога
+  - `getItemById(id: string): any` - получение товара по ID
 
-- **CardPreview**  
-  - Задача: модальное окно с подробной информацией о товаре и добавлением в корзину.  
-  - Поля:  
-    - `data`: объект с данными товара  
-    - `addToBasketHandler`: функция-обработчик клика по кнопке добавления  
-  - Методы:  
-    - `open()`: открывает модальное окно с данными  
-    - `close()`: закрывает модальное окно
-    - `addToBasket()`: добавляет товар в корзину  
-    - `initEventListeners()`: инициализирует обработчики событий  
-    - `applyCategoryColor()`: применяет цвет категории к элементу
+#### **`Modal` (src/components/Modal.ts)**
+**Назначение**: Базовый компонент модальных окон
+- **Методы**:
+  - `open(): void` - открытие модального окна
+  - `close(): void` - закрытие модального окна
+  - `setContent(content: HTMLElement): void` - установка контента
 
-- **Modal**  
-  - Задача: базовый функционал модальных окон, управление открытием и закрытием.  
-  - Методы:  
-    - `openModal(options: IModalOptions)`: открывает модальное окно по шаблону  
-    - `closeModal()`: закрывает активное модальное окно
+#### **`Basket` (src/components/Basket.ts)**
+**Назначение**: Корзина покупок
+- **Ключевые свойства**:
+  - `items: IBasketItem[]` - массив товаров в корзине
+  - `total: number` - общая стоимость
+- **Методы**:
+  - `addItem(item: IBasketItem): void` - добавление товара
+  - `removeItem(id: string): void` - удаление товара
+  - `updateQuantity(id: string, quantity: number): void` - обновление количества
+  - `clear(): void` - очистка корзины
+  - `getTotal(): number` - получение общей стоимости
+  - `getItemCount(): number` - получение количества товаров
+  - `hasItem(id: string): boolean` - проверка наличия товара
 
-- **Order**  
-  - Задача: оформление заказа с многошаговой формой, валидация и сбор данных.  
-  - Поля:  
-    - `currentStep`: номер текущего шага  
-    - `modalElement`: HTMLElement модального окна  
-    - `paymentButtonsContainer`: контейнер кнопок оплаты  
-    - `paymentButtons`: список кнопок оплаты  
-    - `addressInput`: поле ввода адреса  
-    - `nextButton`: кнопка перехода к следующему шагу  
-    - `form`: HTML-форма  
-    - `orderData`: объект с данными заказа  
-  - Методы:  
-    - `start()`: запуск процесса оформления  
-    - `openStep(step: number)`: открытие конкретного шага  
-    - `openPaymentStep()`: открытие шага оплаты  
-    - `initPaymentForm(modal: HTMLElement)`: инициализация формы оплаты  
-    - `setButtonAttributes(button: HTMLButtonElement, selected: boolean)`: установка состояния кнопок  
-    - `onPaymentButtonClick(event: Event)`: обработка клика по кнопкам оплаты  
-    - `validatePaymentForm()`: валидация формы оплаты  
-    - `openContactsStep()`: открытие шага контактов  
-    - `initContactsForm(modal: HTMLElement)`: инициализация формы контактов  
-    - `openSuccessStep()`: открытие шага успешного оформления  
-    - `calculateTotalPrice()`: расчет итоговой суммы  
-    - `close()`: закрытие модального окна
+#### **`Form` (src/components/Form.ts)**
+**Назначение**: Формы заказа и контактных данных
+- **Методы**:
+  - Валидация и отправка данных заказа
+  - Управление состоянием формы
+  - Обработка событий формы
 
-- **Basket**  
-  - Задача: отображение и управление корзиной.
+#### **`Success` (src/components/Success.ts)**
+**Назначение**: Компонент успешного оформления заказа
+- **Отображение**: Итоговая сумма и подтверждение заказа
 
-### Взаимодействие между слоями модели и представления
+## Слой Презентера (Presenter Layer)
 
-- Модель реализует паттерн наблюдателя (Observer) с методом subscribe(listener), вызываемым при изменении состояния.
-- Представление подписывается на изменения модели и обновляет UI.
-- Пользовательские события: добавление товара в корзину, удаление товара, оформление заказа.
-- События вызывают методы модели, которая уведомляет представление.
-- Для расширения взаимодействия можно использовать EventEmitter для объявления и обработки событий.
+### Презентеры
+
+#### **`ItemPresenter` (src/components/ItemPresenter.ts)**
+**Назначение**: Управление отображением товаров и обработка действий
+- **Методы**:
+  - `displayItems(items: any[]): void` - отображение списка товаров
+  - `handleItemPreview(itemId: string): void` - обработка превью товара
+  - `createItem(item: any): IViewItem` - создание компонента товара
+  - `init(): void` - инициализация обработчиков событий
+
+#### **`BasketPresenter` (src/components/BasketPresenter.ts)**
+**Назначение**: Управление корзиной и логикой оформления заказа
+- **Методы**:
+  - `handleAddToBasket(item: IBasketItem): void` - добавление в корзину
+  - `handleRemoveFromBasket(itemId: string): void` - удаление из корзины
+  - `handleUpdateQuantity(itemId: string, quantity: number): void` - обновление количества
+  - `getBasketState(): { items: IBasketItem[], total: number }` - получение состояния корзины
+  - `openBasket(): void` - открытие корзины
+  - `init(): void` - инициализация обработчиков событий
+
+## Слой Модели (Model Layer)
+
+### Модели данных
+
+#### **`IProduct` (src/types/index.ts)**
+**Структура товара**:
+- `id: string` - уникальный идентификатор
+- `title: string` - название товара
+- `price: number` - цена
+- `category: string` - категория
+- `image: string` - URL изображения
+- `description: string` - описание
+
+#### **`IOrder` (src/types/index.ts)**
+**Структура заказа**:
+- `payment: string` - способ оплаты
+- `email: string` - email покупателя
+- `phone: string` - телефон покупателя
+- `address: string` - адрес доставки
+- `total: number` - общая сумма заказа
+- `items: string[]` - массив ID товаров
+
+#### **`ISuccess` (src/types/index.ts)**
+**Структура ответа об успешном заказе**:
+- `id: string` - ID заказа
+- `total: number` - итоговая сумма
+
+#### **`IBasketItem` (src/components/Basket.ts)**
+**Структура элемента корзины**:
+- `id: string` - ID товара
+- `title: string` - название
+- `price: number` - цена
+- `quantity: number` - количество одной единицы товара
+
+### Сервисы и API
+
+#### **`CustomAPI` (src/components/CustomAPI.ts)**
+**Назначение**: Сервис работы с backend API
+- **Методы**:
+  - `getProductList(): Promise<IProduct[]>` - получение списка товаров
+  - `orderResult(order: IOrder): Promise<ISuccess>` - отправка заказа
+- **Конструктор**: `CustomAPI(cdn: string, baseUrl: string)`
+
+#### **`Api` (src/components/base/api.ts)**
+**Назначение**: Базовый класс для HTTP запросов
+- **Методы**:
+  - `get(uri: string): Promise<object>` - GET запрос
+  - `post(uri: string, data: object): Promise<object>` - POST запрос
+- **Типы**:
+  - `ApiListResponse<Type>` - ответ списка с пагинацией
+  - `ApiPostMethods` - методы POST, PUT, DELETE
+
+## Слой Событий (Event Layer)
+
+### EventEmitter система
+
+#### **`EventEmitter` (src/components/base/events.ts)**
+**Назначение**: Централизованная система событий для коммуникации между компонентами
+- **Ключевые методы**:
+  - `on<T>(event: string, callback: (data: T) => void): void` - подписка на событие
+  - `emit<T>(event: string, data?: T): void` - генерация события
+  - `off(event: string, callback: Function): void` - отписка от события
+  - `trigger<T>(event: string, context?: Partial<T>): (data: T) => void` - создание триггера
+
+### Основные события системы
+
+#### **События корзины**:
+- `basket:open` - открытие корзины
+- `basket:add` - добавление товара в корзину
+- `basket:remove` - удаление товара из корзины
+- `basket:changed` - изменение состояния корзины
+- `basket:checkout` - начало оформления заказа
+- `basket:updateQuantity` - обновление количества товара
+
+#### **События товаров**:
+- `item:openPreview` - открытие превью товара
+- `item:addToBasket` - добавление товара в корзину
+- `items:loaded` - загрузка списка товаров
+
+#### **События форм**:
+- `order:submit` - отправка формы заказа
+- `contacts:submit` - отправка формы контактов
+- `form:submit` - общая отправка формы
+
+#### **События модальных окон**:
+- `modal:open` - открытие модального окна
+- `modal:close` - закрытие модального окна
+- `success:close` - закрытие окна успеха
