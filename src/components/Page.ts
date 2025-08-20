@@ -1,90 +1,38 @@
-import { EventEmitter } from './base/events';
+import { IPage } from '../types';
+import { Component } from './base/component';
 
-export interface IPage {
-    basketCounter: number;
-    catalogContainer: HTMLElement;
-    toggleScroll(lock: boolean): void;
-    clearCatalog(): void;
-    appendToCatalog(element: HTMLElement): void;
-    setBasketCounter(count: number): void;
-    getBasketCounter(): number;
-    setItems(items: any[]): void;
-    getItemById(id: string): any;
-}
-
-export class Page implements IPage {
-    protected _events: EventEmitter;
-    protected _container: HTMLElement;
+export class Page extends Component<IPage> {
+    protected _itemCatalog: HTMLElement;
     protected _basketCounter: HTMLElement;
-    protected _catalogContainer: HTMLElement;
-    protected _items: any[] = [];
+    protected _wrapper: HTMLElement;
+    protected _basket: HTMLElement;
 
-    constructor(container: HTMLElement, events: EventEmitter) {
-        this._events = events;
-        this._container = container;
+    constructor(container: HTMLElement) {
+        super(container);
 
-        this._basketCounter = this._container.querySelector('.header__basket-counter') as HTMLElement;
-        this._catalogContainer = this._container.querySelector('.gallery') as HTMLElement;
-        
-        this._initEventListeners();
-    }
+        this._itemCatalog = container.querySelector('.gallery') as HTMLElement;
+        this._basketCounter = container.querySelector('.header__basket-counter') as HTMLElement;
+        this._wrapper = container.querySelector('.page__wrapper') as HTMLElement;
+        this._basket = container.querySelector('.header__basket') as HTMLElement;
 
-    setBasketCounter(count: number): void {
-        if (this._basketCounter) {
-            this._basketCounter.textContent = String(count);
-        }
-    }
-
-    getBasketCounter(): number {
-        return this._basketCounter ? parseInt(this._basketCounter.textContent || '0') : 0;
-    }
-
-    set basketCounter(value: number) {
-        this.setBasketCounter(value);
-    }
-
-    get basketCounter(): number {
-        return this.getBasketCounter();
-    }
-
-    get catalogContainer(): HTMLElement {
-        return this._catalogContainer;
-    }
-
-    toggleScroll(lock: boolean) {
-        this._container.classList.toggle('page_locked', lock);
-    }
-
-    protected _initEventListeners() {
-        const basketButton = this._container.querySelector('.header__basket');
-        if (basketButton) {
-            basketButton.addEventListener('click', () => {
-                this._events.emit('basket:open');
-            });
-        }
-
-        this._events.on('basket:count:update', (data: { count: number }) => {
-            this.setBasketCounter(data.count);
+        this._basket.addEventListener('click', () => {
+            document.dispatchEvent(new CustomEvent('basket:open'));
         });
     }
 
-    clearCatalog() {
-        if (this._catalogContainer) {
-            this._catalogContainer.innerHTML = '';
+    set basketCounter(value: number) {
+        this.setText(this._basketCounter, String(value));
+    }
+
+    set catalog(items: HTMLElement[]) {
+        this._itemCatalog.replaceChildren(...items);
+    }
+
+    set locked(value: boolean) {
+        if (value) {
+            this._wrapper.classList.add('page__wrapper_locked');
+        } else {
+            this._wrapper.classList.remove('page__wrapper_locked');
         }
-    }
-
-    appendToCatalog(element: HTMLElement) {
-        if (this._catalogContainer) {
-            this._catalogContainer.append(element);
-        }
-    }
-
-    setItems(items: any[]) {
-        this._items = items;
-    }
-
-    getItemById(id: string) {
-        return this._items.find(item => item.id === id);
     }
 }

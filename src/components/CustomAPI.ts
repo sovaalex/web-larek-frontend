@@ -1,25 +1,19 @@
-import { IOrder, IProduct, ISuccess } from '../types';
 import { Api, ApiListResponse } from './base/api';
+import { IOrder, ISuccess, IBaseItem } from '../types';
 
-export interface ICustomAPI {
-    getProductList: () => Promise<IProduct[]>;
-    orderResult: (order: IOrder) => Promise<ISuccess>;
-}
-
-export class CustomAPI extends Api implements ICustomAPI {
+export class CustomAPI extends Api {
     readonly cdn: string;
 
-    constructor(cdn: string, baseUrl: string) {
-        super(baseUrl);
-        this.cdn = cdn;
+    constructor(cdnUrl: string, baseUrl: string, options?: RequestInit) {
+        super(baseUrl, options);
+        this.cdn = cdnUrl;
     }
 
-    getProductList(): Promise<IProduct[]> {
-        return this.get(`/product`)
-        .then((data: ApiListResponse<IProduct>) =>
-            data.items.map((item) => ({
+    getProductList(): Promise<IBaseItem[]> {
+        return this.get('/product').then((data: ApiListResponse<IBaseItem>) => 
+            data.items.map(item => ({
                 ...item,
-                image: this.cdn + item.image,
+                image: this.cdn + item.image
             }))
         );
     }
@@ -29,3 +23,4 @@ export class CustomAPI extends Api implements ICustomAPI {
         .then((data: ISuccess) => data);
     }
 }
+
