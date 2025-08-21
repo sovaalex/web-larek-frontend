@@ -20,7 +20,7 @@ export interface IModalData {
 	content: HTMLElement;
 }
 
-export interface IBasketView {
+export interface IBasket {
 	items: HTMLElement[];
 	total: number | string;
 	selected: string[];

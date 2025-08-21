@@ -76,53 +76,42 @@ yarn build
 
 ## Паттерн проектирования
 
-Проект реализует паттерн MVP с событийно-ориентированной архитектурой для обеспечения слабой связанности компонентов.
-
-### Структура паттерна:
-- **Model** - управление данными и бизнес-логикой
-- **View** - отображение UI компонентов
-- **Presenter** - координация между Model и View
-- **EventEmitter** - обеспечивает коммуникацию между слоями
+Проект реализует cобытийно-ориентированной подход.
 
 ---
 
 ## Слой Модели (Model Layer)
 
-### Классы данных
-
-#### **`IProduct` (src/types/index.ts)**
-**Главная задача**: Определяет структуру товара в системе
+#### **`AppDataModel (src/components/DataModel.ts)**
+**Главная задача**: Центральный класс управления данными приложения, наследует от EventEmitter и управляет состоянием приложения
 - **Поля**:
-  - `id: string` - уникальный идентификатор товара
-  - `title: string` - название товара
-  - `price: number` - цена в рублях
-  - `category: string` - категория товара
-  - `image: string` - URL изображения
-  - `description: string` - описание товара
-
-#### **`IOrder` (src/types/index.ts)**
-**Главная задача**: Структура заказа для оформления покупки
-- **Поля**:
-  - `payment: string` - способ оплаты
-  - `email: string` - email покупателя
-  - `phone: string` - телефон покупателя
-  - `address: string` - адрес доставки
-  - `total: number` - общая сумма заказа
-  - `items: string[]` - массив ID товаров
-
-#### **`ISuccess` (src/types/index.ts)**
-**Главная задача**: Ответ об успешном оформлении заказа
-- **Поля**:
-  - `id: string` - ID заказа
-  - `total: number` - итоговая сумма
-
-#### **`IBasketItem` (src/components/Basket.ts)**
-**Главная задача**: Элемент корзины покупок
-- **Поля**:
-  - `id: string` - ID товара
-  - `title: string` - название товара
-  - `price: number` - цена за единицу
-  - `quantity: number` - количество товара
+  - `_products: IBaseItem[]` - массив товаров
+  - `_basket: IBasketItem[]` - массив товаров в корзине
+  - `_order: IOrder` - объект заказа с информацией об оплате, адресе, контактах
+  - `_orderSuccess: ISuccess | null` - результат успешного оформления заказа
+  - `_preview: string | null` - ID товара для предпросмотра
+- **Методы**:
+  - `get products(): IBaseItem[]` - получение списка товаров
+  - `set products(products: IBaseItem[])` - установка списка товаров с генерацией события
+  - `getProduct(id: string): IBaseItem | undefined` - получение товара по ID
+  - `addToBasket(product: IBaseItem)` - добавление товара в корзину
+  - `removeFromBasket(id: string)` - удаление товара из корзины
+  - `get basket(): IBasketItem[]` - получение содержимого корзины
+  - `get preparedBasketIds(): string[]` - получение массива ID товаров в корзине
+ 极 `get basketTotal(): number` - вычисление общей суммы корзины
+  - `get basketCount(): number` - вычисление общего количества товаров в корзине
+  - `clearBasket()` - очистка корзины
+  - `setOrderField(field: keyof IOrderForm, value: string)` - установка поля заказа
+  - `setContactsField(field: keyof IContactsForm, value: string)` - установка поля контактов
+  - `get order(): IOrder` - получение объекта заказа
+  - `set order(order: IOrder)` - установка объекта заказа
+  - `validateOrder(): boolean` - валидация информации о заказе
+  - `validateContacts(): boolean` - валидация контактной информации
+  - `resetOrder()` - сброс заказа
+- **События**:
+  - `products:changed` - при изменении списка товаров
+  - `basket:changed` - при изменении содержимого корзины
+  - `order:changed` - при изменении информации о заказе
 
 ### Сервисы и API
 
@@ -132,14 +121,14 @@ yarn build
   - `cdn: string` - базовый URL для изображений
   - `baseUrl: string` - базовый URL API
 - **Методы**:
-  - `getProductList(): Promise<IProduct[]>` - получение списка товаров
+  - `getProductList(): Promise<IBaseitem[]>` - получение списка товаров
   - `orderResult(order: IOrder): Promise<ISuccess>` - отправка заказа
 
 #### **`Api` (src/components/base/api.ts)**
 **Главная задача**: Базовый класс для HTTP запросов
 - **Методы**:
   - `get(uri: string): Promise<object>` - GET запрос
-  - `post(uri: string, data: object): Promise<object>` - POST запрос
+  - `post(uri: string, data: object): Promise极object>` - POST запрос
 
 ---
 
@@ -147,86 +136,128 @@ yarn build
 
 ### Компоненты отображения
 
-#### **`Item` (src/components/Item.ts)**
-**Главная задача**: Отображение карточки товара в каталоге
+#### **Component (src/components/base/Component.ts)**
+**Главная задача**: Абстрактный класс для создания компонентов, обеспечивающий базовые методы для работы с элементами DOM.
 - **Поля**:
-  - `id: string` - уникальный идентификатор товара
-  - `title: string` - название товара
-  - `price: number` - цена товара
-  - `category: string` - категория товара
-  - `image: string` - URL изображения
-  - `description: string` - описание товара
+  - `container: HTMLElement` - контейнер, в который будет рендериться компонент.
 - **Методы**:
-  - `render(product: IProduct): HTMLElement` - рендеринг карточки товара
-  - Обработка кликов для открытия превью и добавления в корзину
+- `setText(element: HTMLElement, value: unknown): void` - устанавливает текстовое содержимое указанного элемента.
+- `setImage(element: HTMLImageElement, src: string, alt?: string): void` - устанавливает источник и альтернативный текст для изображения.
+- `setDisabled(element: HTMLElement, state: boolean): void` - устанавливает состояние "disabled" для указанного элемента.
+- `render(data?: Partial<T>)`: HTM极Element - рендерит компонент, обновляя его данные на основе переданного объекта.
 
-#### **`Page` (src/components/Page.ts)**
-**Главная задача**: Главная страница приложения
+#### **Form (src/components/Form.ts)**
+**Главная задача**: Базовый класс для создания форм, наследует от Component и предоставляет базовую функциональность для работы с формами
 - **Поля**:
-  - `basketCounter: number` - счетчик товаров в корзине
-  - `catalogContainer: HTMLElement` - контейнер для каталога товаров
+  - `_submitButton: HTMLButtonElement` - кнопка отправки формы
+  - `_formErrors: HTMLSpanElement` - элемент для отображения ошибок формы
+  - `fields: Map<string, HTMLInputElement>` - коллекция полей формы
 - **Методы**:
-  - `setBasketCounter(count: number): void` - обновление счетчика корзины
-  - `appendToCatalog(element: HTMLElement): void` - добавление товара в каталог
-  - `toggleScroll(lock: boolean): void` - блокировка/разблокировка прокрутки
-  - `clearCatalog(): void` - очистка каталога
-  - `getItemById(id: string): any` - получение товара по ID
+  - `validateForm(): boolean` - валидация всей формы
+  - `updateSubmitButton()` - обновление состояния кнопки отправки
+  - `getFormData(): Record<string, string>` - получение данных формы
+  - `setFormData(data: Record<string, string>)` - установка данных формы
+  - `clearForm()` - очистка формы
+  - `render(data: Partial<IFormBase>)` - рендеринг формы
 
-#### **`Modal` (src/components/Modal.ts)**
-**Главная задача**: Базовый компонент модальных окон
-- **Методы**:
-  - `open(): void` - открытие модального окна
-  - `close(): void` - закрытие модального окна
-  - `setContent(content: HTMLElement): void` - установка контента
-
-#### **`Basket` (src/components/Basket.ts)**
-**Главная задача**: Корзина покупок
+#### **Modal (src/components/Modal.ts)**
+**Главная задача**: Базовый компонент модального окна, обеспечивает открытие и закрытие модальных окон
 - **Поля**:
-  - `items: IBasketItem[]` - массив товаров в корзине
-  - `total: number` - общая стоимость
+  - `_closeButton: HTMLButtonElement` - кнопка закрытия модального окна
+  - `_content: HTMLElement` - элемент содержимого модального окна
 - **Методы**:
-  - `addItem(item: IBasketItem): void` - добавление товара
-  - `removeItem(id: string): void` - удаление товара
-  - `updateQuantity(id: string, quantity: number): void` - обновление количества
-  - `clear(): void` - очистка корзины
-  - `getTotal(): number` - получение общей стоимости
-  - `getItemCount(): number` - получение количества товаров
-  - `hasItem(id: string): boolean` - проверка наличия товара
+  - `open()` - открытие модального окна
+  - `close()` - закрытие модального окна
+  - `set content(value: HTMLElement)` - установка содержимого модального окна
 
-#### **`Form` (src/components/Form.ts)**
-**Главная задача**: Формы заказа и контактных данных
+#### **Basket (src/components/Basket.ts)**
+**Главная задача**: Компонент корзины покупок, который управляет списком товаров и их общей стоимостью.
+- **Поля**:
+- `protected _items: HTMLElement - элемент, отображающий список товаров в корзине.
+- `protected _price: HTMLElement - элемент, отображающий общую стоимость товаров в корзине.
+- `protected _button: HTMLButtonElement - кнопка для оформления заказа.
+- `protected _list: IBasketItem[] - массив товаров в корзине.
 - **Методы**:
-  - Валидация и отправка данных заказа
-  - Управление состоянием формы
-  - Обработка событий формы
+- `set items(items: IBasketItem[]): void` - устанавливает список товаров в корзине.
+- `get items(): IBasket极Item[]` - возвращает текущий список товаров в корзине.
+- `get total(): number` - вычисляет и возвращает общую стоимость товаров в корзине.
+- `add(item: IBasketItem): void` - добавляет товар в корзину.
+- `remove(itemId: string): void` - удаляет товар из корзины по его ID.
+- `clear(): void` - очищает корзину.
+- `极 itemsElement(): HTMLElement` - возвращает элемент, отображающий список товаров.
+- `get priceElement(): HTMLElement` - возвращает элемент, отображающий общую стоимость.
+- `get buttonElement(): HTMLButtonElement` - возвращает кнопку для оформления заказа.
 
-#### **`Success` (src/components/Success.ts)**
-**Главная задача**: Компонент успешного оформления заказа
-- **Отображение**: Итоговая сумма и подтверждение заказа
-
----
-
-## Слой Презентера (Presenter Layer)
-
-### Презентеры
-
-#### **`ItemPresenter` (src/components/ItemPresenter.ts)**
-**Главная задача**: Управление отображением товаров и обработка действий
+#### **BasketItem (src/components/BasketItem.ts)**
+**Главная задача**: Компонент, представляющий отдельный элемент в корзине покупок, отображающий информацию о товаре и предоставляющий возможность его удаления.
+- **Поля**:
+- `protected _title: HTMLElement` - элемент, отображающий название товара.
+- `protected _price: HTMLElement` - элемент, отображающий цену товара.
+- `protected _index: HTMLElement` - элемент, отображающий индекс товара в корзине.
+- `protected _button: HTMLButtonElement` - кнопка для удаления товара из корзины.
 - **Методы**:
-  - `displayItems(items: any[]): void` - отображение списка товаров
-  - `handleItemPreview(itemId: string): void` - обработка превью товара
-  - `createItem(item: any): IViewItem` - создание компонента товара
-  - `init(): void` - инициализация обработчиков событий
+- `set id(value: string): void` - устанавливает ID товара в атрибут data-id контейнера.
+- `get id(): string` - возвращает ID товара из атрибута data-id контейнера.
+- `set title(value: string): void` - устанавливает название товара.
+- `get title(): string` - возвращает название товара.
+- `set price(value: number | null): void` - устанавливает цену товара, отображая "Бесценно", если цена равна null.
+- `set index(value: string): void` - устанавливает индекс товара в корзине.
+- `get index(): string` - возвращает индекс товара.
+- `render(): HTMLElement` - рендерит компонент и возвращает контейнер.
 
-#### **`BasketPresenter` (src/components/BasketPresenter.ts)**
-**Главная задача**: Управление корзиной и логикой оформления заказа
+#### **Card (src/components/Card.ts)**
+**Главная задача**: Компонент, представляющий карточку товара, отображающий информацию о товаре и предоставляющий возможность взаимодействия с ним.
+- **Поля**:
+- `protected _title: HTMLElement` - элемент, отображающий название товара.
+- `protected _image: HTMLImageElement` - элемент, отображающий изображение товара.
+- `protected _category: HTMLElement` - элемент, отображающий категорию товара.
+- `protected _price: HTMLElement` - элемент, отображающий цену товара.
+- `protected _description?: HTMLElement` - элемент, отображающий описание товара (необязательный).
+- `protected _button: HTMLButtonElement` - кнопка для взаимодействия с товаром.
+- `protected _index?: HTMLElement` - элемент, отображающий индекс товара (необязательный).
+- `protected card: IBaseItem` - объект, представляющий данные товара.
 - **Методы**:
-  - `handleAddToBasket(item: IBasketItem): void` - добавление в корзину
-  - `handleRemoveFromBasket(itemId: string): void` - удаление из корзины
-  - `handleUpdateQuantity(itemId: string, quantity: number): void` - обновление количества
-  - `getBasketState(): { items: IBasketItem[], total: number }` - получение состояния корзины
-  - `openBasket(): void` - открытие корзины
-  - `init(): void` - инициализация обработчиков событий
+- `set id(value: string): void` - устанавливает ID товара в атрибут data-id контейнера.
+- `get id(): string` - возвращает ID товара из атрибута data-id контейнера.
+- `set title(value: string): void` - устанавливает название товара.
+- `get title(): string` - возвращает название товара.
+- `set image(value: string): void` - устанавливает изображение товара.
+- `set category(value: string):极 void` - устанавливает категорию товара и применяет соответствующий стиль.
+- `set price(value: number | null): void` - устанавливает цену товара, отображая "Бесценно", если цена равна null, и отключает кнопку.
+- `极 description(value: string): void` - устанавливает описание товара.
+- `set buttonText(value: string): void` - устанавливает текст на кнопке.
+- `极 index(value: string): void` - устанавливает индекс товара.
+- `get index(): string` - возвращает индекс товара.
+- `render(): HTMLElement` - рендерит компонент, обновляя его данные на основе переданного объекта, и возвращает контейнер.
+
+#### **CardPreview (src/components/CardPreview.ts)**
+**Главная задача**: Компонент, представляющий предварительный просмотр карточки товара, отображающий информацию о товаре с возможностью взаимодействия.
+- **Поля**:
+- `protected _description: HTMLElement` - элемент, отображающий описание товара.
+- `protected _button: HTMLButtonElement` - кнопка для взаимодействия с товаром.
+- **Методы**:
+- `set description(value: string): void` - устанавливает описание товара.
+- `set buttonText(value: string): void` - устанавливает текст на кнопке.
+- `render(): HTMLElement` - рендерит компонент, обновляя его данные на основе переданного объекта, и возвращает контейнер, вызывая метод render родительского класса.
+
+#### **ContactForm (src/components/ContactForm.ts)**
+**Главная задача**: Компонент формы для ввода контактной информации, который управляет событиями формы и валидацией полей.
+- **Поля**:
+- `protected _contactForm: HTMLFormElement` - элемент формы для ввода контактной информации.
+- `protected _dataModel: AppDataModel` - модель данных приложения, используемая для хранения и обработки введенной информации.
+- **Методы**:
+- `protected bindPaymentEvents(): void` - связывает события формы с обработчиками, отправляющими данные в модель данных при отправке формы.
+- `protected validateField(name: string): boolean` - выполняет валидацию указанного поля формы, проверяя его значение и отображая сообщения об ошибках, если поле не валидно.
+
+#### **Success (src/components/Success.ts)**
+**Главная задача**: Компонент отображения успешного завершения заказа, показывает информацию о списанных синапсах и предоставляет кнопку для продолжения
+- **Поля**:
+  - `_button: HTMLButtonElement` - кнопка для продолжения после успешного заказа
+  - `_label: HTMLParagraphElement` - элемент для отображения информации о списанных синапсах
+  - `_callback: () => void` - callback-функция, вызываемая при нажатии на кнопку
+- **Методы**:
+  - `set callback(callback: () => void)` - установка callback-функции для кнопки
+  - Отображает сообщение формата "Списано {total} синапсов" на основе данных из модели
 
 ---
 
@@ -241,30 +272,3 @@ yarn build
   - `trigger<T>(event: string, context?: Partial<T>): (data: T) => void` - создание триггера
 
 ---
-
-## Взаимодействие между слоями через EventEmitter
-
-### Пользовательские события:
-
-#### **События корзины**:
-- `basket:open` - открытие корзины
-- `basket:add` - добавление товара в корзину
-- `basket:remove` - удаление товара из корзины
-- `basket:changed` - изменение состояния корзины
-- `basket:checkout` - начало оформления заказа
-- `basket:updateQuantity` - обновление количества товара
-
-#### **События товаров**:
-- `item:openPreview` - открытие превью товара
-- `item:addToBasket` - добавление товара в корзину
-- `items:loaded` - загрузка списка товаров
-
-#### **События форм**:
-- `order:submit` - отправка формы заказа
-- `contacts:submit` - отправка формы контактов
-- `form:submit` - общая отправка формы
-
-#### **События модальных окон**:
-- `modal:open` - открытие модального окна
-- `modal:close` - закрытие модального окна
-- `success:close` - закрытие окна успеха

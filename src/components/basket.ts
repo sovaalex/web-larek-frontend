@@ -1,54 +1,60 @@
-import { IBasketItem, IBasketView } from '../types';
+import { IBasketItem, IBasket } from '../types';
 import { Component } from './base/component';
 import { ensureElement } from '../utils/utils';
 
-export class Basket extends Component<IBasketView> {
-    protected _items: HTMLElement;
-    protected _price: HTMLElement;
-    protected _button: HTMLButtonElement;
-    protected _list: IBasketItem[] = [];
+export class Basket extends Component<IBasket> {
+	protected _items: HTMLElement;
+	protected _price: HTMLElement;
+	protected _button: HTMLButtonElement;
+	protected _list: IBasketItem[] = [];
 
-    constructor(container: HTMLElement) {
-        super(container);
-        
-        this._items = ensureElement<HTMLElement>('.basket__list', container);
-        this._price = ensureElement<HTMLElement>('.basket__price', container);
-        this._button = ensureElement<HTMLButtonElement>('.basket__button', container);
-    }
+	constructor(container: HTMLElement) {
+		super(container);
 
-    set items(items: IBasketItem[]) {
-        this._list = items;
-    }
+		this._items = ensureElement<HTMLElement>('.basket__list', container);
+		this._price = ensureElement<HTMLElement>('.basket__price', container);
+		this._button = ensureElement<HTMLButtonElement>(
+			'.basket__button',
+			container
+		);
+	}
 
-    get items(): IBasketItem[] {
-        return this._list;
-    }
+	set items(items: IBasketItem[]) {
+		this._list = items;
+	}
 
-    get total(): number {
-        return this._list.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
-    }
+	get items(): IBasketItem[] {
+		return this._list;
+	}
 
-    add(item: IBasketItem) {
-        this._list.push(item);
-    }
+	get total(): number {
+		return this._list.reduce(
+			(sum, item) => sum + (item.price || 0) * item.quantity,
+			0
+		);
+	}
 
-    remove(itemId: string) {
-        this._list = this._list.filter(item => item.id !== itemId);
-    }
+	add(item: IBasketItem) {
+		this._list.push(item);
+	}
 
-    clear() {
-        this._list = [];
-    }
+	remove(itemId: string) {
+		this._list = this._list.filter((item) => item.id !== itemId);
+	}
 
-    get itemsElement(): HTMLElement {
-        return this._items;
-    }
+	clear() {
+		this._list = [];
+	}
 
-    get priceElement(): HTMLElement {
-        return this._price;
-    }
+	get itemsElement(): HTMLElement {
+		return this._items;
+	}
 
-    get buttonElement(): HTMLButtonElement {
-        return this._button;
-    }
+	get priceElement(): HTMLElement {
+		return this._price;
+	}
+
+	get buttonElement(): HTMLButtonElement {
+		return this._button;
+	}
 }

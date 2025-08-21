@@ -1,104 +1,135 @@
 import { EventEmitter } from './base/events';
-import { IBaseItem, IOrder, IOrderForm, IContactsForm, IBasketItem } from '../types';
+import {
+	IBaseItem,
+	IOrder,
+	IOrderForm,
+	IContactsForm,
+	IBasketItem,
+	ISuccess,
+} from '../types';
 
 export class AppDataModel extends EventEmitter {
-    protected _products: IBaseItem[] = [];
-    protected _basket: IBasketItem[] = [];
-    protected _order: IOrder = {
-        payment: '',
-        address: '',
-        email: '',
-        phone: '',
-        total: 0,
-        items: []
-    };
-    protected _preview: string | null = null;
+	protected _products: IBaseItem[] = [];
+	protected _basket: IBasketItem[] = [];
+	protected _order: IOrder = {
+		payment: '',
+		address: '',
+		email: '',
+		phone: '',
+		total: 0,
+		items: [],
+	};
+	protected _orderSuccess: ISuccess | null = null;
+	protected _preview: string | null = null;
 
-    constructor() {
-        super();
-    }
+	constructor() {
+		super();
+	}
 
-    set products(products: IBaseItem[]) {
-        this._products = products;
-        this.emit('products:changed', this._products);
-    }
+	set orderSuccess(orderResult: ISuccess) {
+		this._orderSuccess = orderResult;
+	}
 
-    get products(): IBaseItem[] {
-        return this._products;
-    }
+	get orderSuccess(): ISuccess | null {
+		return this._orderSuccess;
+	}
 
-    getProduct(id: string): IBaseItem | undefined {
-        return this._products.find(product => product.id === id);
-    }
+	set products(products: IBaseItem[]) {
+		this._products = products;
+		this.emit('products:changed', this._products);
+	}
 
-    addToBasket(product: IBaseItem) {
-        const existingItem = this._basket.find(item => item.id === product.id);
-        if (existingItem) {
-            existingItem.quantity += 1;
-        } else {
-            this._basket.push({ ...product, quantity: 1 });
-        }
-        this.emit('basket:changed', this._basket);
-    }
+	get products(): IBaseItem[] {
+		return this._products;
+	}
 
-    removeFromBasket(id: string) {
-        this._basket = this._basket.filter(item => item.id !== id);
-        this.emit('basket:changed', this._basket);
-    }
+	getProduct(id: string): IBaseItem | undefined {
+		return this._products.find((product) => product.id === id);
+	}
 
-    get basket(): IBasketItem[] {
-        return this._basket;
-    }
+	addToBasket(product: IBaseItem) {
+		const existingItem = this._basket.find((item) => item.id === product.id);
+		if (existingItem) {
+			existingItem.quantity += 1;
+		} else {
+			this._basket.push({ ...product, quantity: 1 });
+		}
+		this.emit('basket:changed', this._basket);
+	}
 
-    get basketTotal(): number {
-        return this._basket.reduce((total, item) => total + (item.price || 0) * item.quantity, 0);
-    }
+	removeFromBasket(id: string) {
+		this._basket = this._basket.filter((item) => item.id !== id);
+		this.emit('basket:changed', this._basket);
+	}
 
-    get basketCount(): number {
-        return this._basket.reduce((total, item) => total + item.quantity, 0);
-    }
+	get basket(): IBasketItem[] {
+		return this._basket;
+	}
 
-    clearBasket() {
-        this._basket = [];
-        this.emit('basket:changed', this._basket);
-    }
+	get preparedBasketIds(): string[] {
+		const result: string[] = [];
 
-    setOrderField(field: keyof IOrderForm, value: string) {
-        this._order[field] = value;
-        this.emit('order:changed', this._order);
-    }
+		for (const item of this._basket) {
+			for (let i = 0; i < item.quantity; i++) {
+				result.push(item.id);
+			}
+		}
 
-    setContactsField(field: keyof IContactsForm, value: string) {
-        this._order[field] = value;
-        this.emit('order:changed', this._order);
-    }
+		return result;
+	}
 
-    get order(): IOrder {
-        return this._order;
-    }
+	get basketTotal(): number {
+		return this._basket.reduce(
+			(total, item) => total + (item.price || 0) * item.quantity,
+			0
+		);
+	}
 
-    set order(order: IOrder) {
-        this._order = order;
-        this.emit('order:changed', this._order);
-    }
+	get basketCount(): number {
+		return this._basket.reduce((total, item) => total + item.quantity, 0);
+	}
 
-    validateOrder(): boolean {
-        return !!(this._order.payment && this._order.address);
-    }
+	clearBasket() {
+		this._basket = [];
+		this.emit('basket:changed', this._basket);
+	}
 
-    validateContacts(): boolean {
-        return !!(this._order.email && this._order.phone);
-    }
+	setOrderField(field: keyof IOrderForm, value: string) {
+		this._order[field] = value;
+		this.emit('order:changed', this._order);
+	}
 
-    resetOrder() {
-        this._order = {
-            payment: '',
-            address: '',
-            email: '',
-            phone: '',
-            total: 0,
-            items: []
-        };
-        this.emit('order:changed', this._order);
-    }
+	setContactsField(field: keyof IContactsForm, value: string) {
+		this._order[field] = value;
+		this.emit('order:changed', this._order);
+	}
+
+	get order(): IOrder {
+		return this._order;
+	}
+
+	set order(order: IOrder) {
+		this._order = order;
+		this.emit('order:changed', this._order);
+	}
+
+	validateOrder(): boolean {
+		return !!(this._order.payment && this._order.address);
+	}
+
+	validateContacts(): boolean {
+		return !!(this._order.email && this._order.phone);
+	}
+
+	resetOrder() {
+		this._order = {
+			payment: '',
+			address: '',
+			email: '',
+			phone: '',
+			total: 0,
+			items: [],
+		};
+		this.emit('order:changed', this._order);
+	}
 }

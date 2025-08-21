@@ -1,48 +1,76 @@
 import { Form } from './Form';
+import { AppDataModel } from './DataModel';
+import { IContactsForm } from '../types';
 
 export class ContactForm extends Form {
-    constructor(container: HTMLFormElement) {
-        super(container);
-    }
+	protected _contactForm: HTMLFormElement;
+	protected _dataModel: AppDataModel;
 
-    protected validateField(name: string): boolean {
-        const field = this.fields.get(name);
-        if (!field) return false;
+	constructor(container: HTMLFormElement, dataModel: AppDataModel) {
+		super(container);
 
-        const value = field.value.trim();
-        let isValid = true;
-        let errorMessage = '';
+		this._dataModel = dataModel;
 
-        switch (name) {
-            case 'email':
-                if (!value) {
-                    isValid = false;
-                    errorMessage = 'Поле обязательно для заполнения';
-                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-                    isValid = false;
-                    errorMessage = 'Введите корректный email';
-                }
-                break;
-            case 'phone':
-                if (!value) {
-                    isValid = false;
-                    errorMessage = 'Поле обязательно для заполнения';
-                } else if (!/^\+?\d{10,15}$/.test(value)) {
-                    isValid = false;
-                    errorMessage = 'Введите корректный номер телефона';
-                }
-                break;
-            default:
-                isValid = value !== '';
-                if (!isValid) errorMessage = 'Поле обязательно для заполнения';
-        }
+		this._contactForm = container.querySelector(
+			'form[name="contacts"]'
+		) as HTMLFormElement;
 
-        if (!isValid) {
-            this.showError(name, errorMessage);
-        } else {
-            this.hideError(name);
-        }
+		this.initializeFields();
+		this.bindPaymentEvents();
+	}
 
-        return isValid;
-    }
+	protected bindPaymentEvents() {
+		if (this._contactForm) {
+			this._contactForm.addEventListener('submit', (event) => {
+				for (const [key] of this.fields) {
+					this._dataModel.setContactsField(
+						key as keyof IContactsForm,
+						this.getFieldValue(key)
+					);
+				}
+
+				this._dataModel.emit('contactsForm:submit');
+
+				event.preventDefault();
+			});
+		}
+	}
+
+	protected validateField(name: string): boolean {
+		const field = this.fields.get(name);
+		if (!field) return false;
+
+		const value = field.value.trim();
+		let isValid = true;
+		let errorMessage = '';
+
+		if (name === 'email') {
+			if (!value) {
+				isValid = false;
+				errorMessage = 'Поле обязательно для заполнения';
+			} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+				isValid = false;
+				errorMessage = 'Введите корректный email';
+			}
+		} else if (name === 'phone') {
+			if (!value) {
+				isValid = false;
+				errorMessage = 'Поле обязательно для заполнения';
+			} else if (!/^\+?\d{10,15}$/.test(value)) {
+				isValid = false;
+				errorMessage = 'Введите корректный номер телефона';
+			}
+		} else {
+			isValid = value !== '';
+			if (!isValid) errorMessage = 'Поле обязательно для заполнения';
+		}
+
+		if (!isValid) {
+			this.showError(name, errorMessage);
+		} else {
+			this.hideError(name);
+		}
+
+		return isValid;
+	}
 }
