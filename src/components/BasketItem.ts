@@ -1,14 +1,14 @@
-import { IBaseItem, ICardActions } from '../types';
+import { IBasketItem, IClick } from '../types';
 import { Component } from './base/component';
 import { ensureElement } from '../utils/utils';
 
-export class BasketItem extends Component<IBaseItem> {
+export class BasketItem extends Component<IBasketItem> {
     protected _title: HTMLElement;
     protected _price: HTMLElement;
     protected _index: HTMLElement;
     protected _button: HTMLButtonElement;
 
-    constructor(container: HTMLElement, actions?: ICardActions) {
+    constructor(container: HTMLElement, actions?: IClick) {
         super(container);
 
         this._title = ensureElement<HTMLElement>('.card__title', container);
@@ -51,5 +51,9 @@ export class BasketItem extends Component<IBaseItem> {
 
     get index(): string {
         return this._index.textContent || '';
+    }
+
+    render() {
+        return this.container;
     }
 }

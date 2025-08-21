@@ -15,6 +15,10 @@
     flex-grow: 1;
   }
 
+  &_empty {
+      opacity: 30%;
+    }
+
   &__item {
     border-bottom: 1px solid $primary;
     padding: 1.5rem 0;
@@ -37,10 +41,6 @@
       @include mixins.link($hover, white);
       opacity: 0.5;
       margin-left: 4rem;
-    }
-
-    &_empty {
-      opacity: 30%;
     }
   }
 }

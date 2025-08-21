@@ -1,9 +1,9 @@
 import { EventEmitter } from './base/events';
-import { IBaseItem, IOrder, IOrderForm, IContactsForm } from '../types';
+import { IBaseItem, IOrder, IOrderForm, IContactsForm, IBasketItem } from '../types';
 
 export class AppDataModel extends EventEmitter {
     protected _products: IBaseItem[] = [];
-    protected _basket: IBaseItem[] = [];
+    protected _basket: IBasketItem[] = [];
     protected _order: IOrder = {
         payment: '',
         address: '',
@@ -32,10 +32,13 @@ export class AppDataModel extends EventEmitter {
     }
 
     addToBasket(product: IBaseItem) {
-        if (!this._basket.find(item => item.id === product.id)) {
-            this._basket.push(product);
-            this.emit('basket:changed', this._basket);
+        const existingItem = this._basket.find(item => item.id === product.id);
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            this._basket.push({ ...product, quantity: 1 });
         }
+        this.emit('basket:changed', this._basket);
     }
 
     removeFromBasket(id: string) {
@@ -43,16 +46,16 @@ export class AppDataModel extends EventEmitter {
         this.emit('basket:changed', this._basket);
     }
 
-    get basket(): IBaseItem[] {
+    get basket(): IBasketItem[] {
         return this._basket;
     }
 
     get basketTotal(): number {
-        return this._basket.reduce((total, item) => total + (item.price || 0), 0);
+        return this._basket.reduce((total, item) => total + (item.price || 0) * item.quantity, 0);
     }
 
     get basketCount(): number {
-        return this._basket.length;
+        return this._basket.reduce((total, item) => total + item.quantity, 0);
     }
 
     clearBasket() {

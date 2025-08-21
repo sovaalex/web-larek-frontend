@@ -6,9 +6,12 @@ import { Card } from './components/Card';
 import { CardPreview } from './components/CardPreview';
 import { Modal } from './components/Modal';
 import { Basket } from './components/Basket';
+import { BasketItem } from './components/BasketItem';
+import { OrderForm } from './components/OrderForm';
+import { ContactForm } from './components/ContactForm';
 import { AppDataModel } from './components/DataModel';
 import { API_URL, CDN_URL } from './utils/constants';
-import { IBaseItem } from './types';
+import { IBaseItem, IBasketItem } from './types';
 
 const cardCatalogTemplate = document.querySelector('#card-catalog') as HTMLTemplateElement;
 const cardPreviewTemplate = document.querySelector('#card-preview') as HTMLTemplateElement;
@@ -24,24 +27,24 @@ const page = new Page(document.body);
 const modal = new Modal(document.querySelector('#modal-container') as HTMLElement);
 const dataModel = new AppDataModel();
 
-events.on('products:changed', (products: IBaseItem[]) => {
+dataModel.on('products:changed', (products: IBaseItem[]) => {
     page.catalog = products.map((product: IBaseItem) => {
         const cardElement = cardCatalogTemplate.content.cloneNode(true) as HTMLElement;
-        
-        const card = new Card(cardElement.querySelector('.card') as HTMLElement, product);
-        cardElement.addEventListener('click', () => {
-            events.emit('item:openPreview', product);
+        const cardButton = cardElement.querySelector('.card') as HTMLElement;   
+        const card = new Card(cardButton, product);
+        cardButton.addEventListener('click', () => {
+            dataModel.emit('item:openPreview', product);
         });
         
         return cardElement;
     });
 });
 
-events.on('item:openPreview', (product: IBaseItem) => {
-    const previewElement = cardPreviewTemplate.content.cloneNode(true) as HTMLElement;
-    
+dataModel.on('item:openPreview', (product: IBaseItem) => {
+    const previewElement = cardPreviewTemplate.content.cloneNode(true) as HTMLElement;    
     const cardPreview = new CardPreview(previewElement.querySelector('.card') as HTMLElement, product);
-    const button = previewElement.querySelector('.card__button');
+    
+    const button = previewElement.querySelector('.card__button') as HTMLButtonElement;
     if (button) {
         button.addEventListener('click', () => {
             dataModel.addToBasket(product);
@@ -53,10 +56,10 @@ events.on('item:openPreview', (product: IBaseItem) => {
     modal.open();
 });
 
-events.on('basket:changed', (basketItems: IBaseItem[]) => {
-    const basketCounter = document.querySelector('.header__basket-counter');
+dataModel.on('basket:changed', (basketItems: IBaseItem[]) => {
+    const basketCounter = document.querySelector('.header__basket-counter') as HTMLElement;
     if (basketCounter) {
-        basketCounter.textContent = String(basketItems.length);
+        basketCounter.textContent = String(dataModel.basketCount);
     }
 });
 
@@ -69,21 +72,83 @@ async function loadProducts() {
     }
 }
 
+function renderBasket(basketInstance: Basket, items: IBasketItem[]) {
+    const itemsElement = basketInstance.itemsElement as HTMLElement;
+    const priceElement = basketInstance.priceElement as HTMLElement;
+    const buttonElement = basketInstance.buttonElement as HTMLButtonElement;
+    
+    itemsElement.innerHTML = '';
+    
+    if (items.length === 0) {
+        const emptyMessage = document.createElement('p');
+        emptyMessage.textContent = 'Корзина пуста';
+        emptyMessage.className = 'basket_empty';
+        itemsElement.appendChild(emptyMessage);
+
+        buttonElement.disabled = true;
+        buttonElement.classList.add('basket__button_disabled');
+    } else {
+        buttonElement.disabled = false;
+        buttonElement.classList.remove('basket__button_disabled');
+
+        items.forEach((item, index) => {
+            const basketItemTemplate = document.querySelector('#card-basket') as HTMLTemplateElement;
+            if (basketItemTemplate) {
+                const templateContent = basketItemTemplate.content.cloneNode(true) as HTMLElement;
+                const basketItemElement = templateContent.querySelector('.basket__item') as HTMLElement;
+                
+                if (basketItemElement) {
+                    const basketItem = new BasketItem(basketItemElement, {
+                        onClick: () => {
+                            dataModel.removeFromBasket(item.id);
+                            renderBasket(basketInstance, dataModel.basket);
+                        }
+                    });
+                    
+                    basketItem.id = item.id;
+                    basketItem.title = `${item.title}`;
+                    basketItem.price = item.price * item.quantity;
+                    basketItem.index = String(index + 1);
+                    
+                    itemsElement.appendChild(basketItemElement);
+                }
+            }
+        });
+
+        buttonElement.addEventListener('click', () => {
+            openOrderForm();
+        });
+    }
+    
+    const total = items.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
+    priceElement.textContent = `${total} синапсов`;
+}
+
 function openBasket() {
     const basketElement = basketTemplate.content.cloneNode(true) as HTMLElement;
     
     const basketInstance = new Basket(basketElement.querySelector('.basket') as HTMLElement);
     basketInstance.items = dataModel.basket;
     
+    renderBasket(basketInstance, dataModel.basket);
+    
     modal.content = basketElement;
+    modal.open();
+}
+
+function openOrderForm() {
+    const orderElement = orderTemplate.content.cloneNode(true) as HTMLElement;
+    const orderForm = new OrderForm(orderElement.querySelector('.order') as HTMLFormElement, dataModel);
+    
+    modal.content = orderElement;
     modal.open();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     loadProducts();
     
-    const basketButton = document.querySelector('.header__basket');
-    if (basketButton) {
-        basketButton.addEventListener('click', openBasket);
-    }
+    // const basketButton = document.querySelector('.header__basket') as HTMLElement;
+    // if (basketButton) {
+    //     basketButton.addEventListener('click', openBasket);
+    // }
 });

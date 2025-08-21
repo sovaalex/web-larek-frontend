@@ -12,13 +12,8 @@ export interface IBaseItem {
 	price: number | null;
 }
 
-export interface ICardActions {
-	onClick: (event: MouseEvent) => void;
-}
-
-export interface ICard extends IBaseItem {
-	buttonText: string;
-	itemCount: number | string;
+export interface IBasketItem extends IBaseItem {
+    quantity: number;
 }
 
 export interface IModalData {
@@ -31,7 +26,7 @@ export interface IBasketView {
 	selected: string[];
 }
 
-export interface IFormState {
+export interface IFormBase {
 	valid: boolean;
 	errors: string[];
 }

@@ -1,4 +1,4 @@
-import { IBaseItem } from '../types';
+import { IBaseItem, IClick } from '../types';
 import { Component } from './base/component';
 import { ensureElement } from '../utils/utils';
 import { CATEGORY_STYLES } from '../utils/constants';
@@ -12,7 +12,7 @@ export class Card extends Component<IBaseItem> {
     protected _button: HTMLButtonElement;
     protected _index?: HTMLElement;
 
-    constructor(container: HTMLElement, protected card: IBaseItem) {
+    constructor(container: HTMLElement, protected card: IBaseItem, actions?: IClick) {
         super(container);
         this._title = ensureElement<HTMLElement>('.card__title', container);
         this._image = ensureElement<HTMLImageElement>('.card__image', container);
@@ -21,6 +21,14 @@ export class Card extends Component<IBaseItem> {
         this._description = container.querySelector('.card__text') as HTMLElement;
         this._button = container.querySelector('.card__button') as HTMLButtonElement;
         this._index = container.querySelector('.basket__item-index') as HTMLElement;
+
+        if (actions) {
+            this.container.addEventListener('click', (event: MouseEvent) => {
+                if (actions.onClick) {
+                    actions.onClick(event);
+                }
+            });
+        }
 
         this.render();
     }
@@ -47,7 +55,14 @@ export class Card extends Component<IBaseItem> {
 
     set category(value: string) {
         this.setText(this._category, value);
-        this._category.classList.add(`card__category_${CATEGORY_STYLES[value]}`);
+
+        Object.values(CATEGORY_STYLES).forEach(style => {
+            this._category.classList.remove(`card__category_${style}`);
+        });
+
+        if (CATEGORY_STYLES[value]) {
+            this._category.classList.add(`card__category_${CATEGORY_STYLES[value]}`);
+        }
     }
 
     set price(value: number | null) {

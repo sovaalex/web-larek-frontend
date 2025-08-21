@@ -1,20 +1,15 @@
 import { Card } from './Card';
-import { IBaseItem, ICardActions } from '../types';
+import { IBaseItem } from '../types';
 
 export class CardPreview extends Card {
     protected _description: HTMLElement;
     protected _button: HTMLButtonElement;
 
-    constructor(container: HTMLElement, product: IBaseItem, actions?: ICardActions) {
+    constructor(container: HTMLElement, product: IBaseItem) {
         super(container, product);
 
         this._description = container.querySelector('.card__text') as HTMLElement;
         this._button = container.querySelector('.card__button') as HTMLButtonElement;
-        
-        if (actions?.onClick) {
-            this._button?.addEventListener('click', actions.onClick);
-        }
-        
         this.render();
     }
 

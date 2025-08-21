@@ -1,4 +1,4 @@
-import { IBaseItem, IBasketView } from '../types';
+import { IBasketItem, IBasketView } from '../types';
 import { Component } from './base/component';
 import { ensureElement } from '../utils/utils';
 
@@ -6,7 +6,7 @@ export class Basket extends Component<IBasketView> {
     protected _items: HTMLElement;
     protected _price: HTMLElement;
     protected _button: HTMLButtonElement;
-    protected _list: IBaseItem[] = [];
+    protected _list: IBasketItem[] = [];
 
     constructor(container: HTMLElement) {
         super(container);
@@ -16,31 +16,39 @@ export class Basket extends Component<IBasketView> {
         this._button = ensureElement<HTMLButtonElement>('.basket__button', container);
     }
 
-    set items(items: IBaseItem[]) {
+    set items(items: IBasketItem[]) {
         this._list = items;
-        this.render();
     }
 
-    get items(): IBaseItem[] {
+    get items(): IBasketItem[] {
         return this._list;
     }
 
     get total(): number {
-        return this._list.reduce((sum, item) => sum + (item.price || 0), 0);
+        return this._list.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
     }
 
-    add(item: IBaseItem) {
+    add(item: IBasketItem) {
         this._list.push(item);
-        this.render();
     }
 
     remove(itemId: string) {
         this._list = this._list.filter(item => item.id !== itemId);
-        this.render();
     }
 
     clear() {
         this._list = [];
-        this.render();
+    }
+
+    get itemsElement(): HTMLElement {
+        return this._items;
+    }
+
+    get priceElement(): HTMLElement {
+        return this._price;
+    }
+
+    get buttonElement(): HTMLButtonElement {
+        return this._button;
     }
 }
