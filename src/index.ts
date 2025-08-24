@@ -34,6 +34,8 @@ const modal = new Modal(
 	document.querySelector('#modal-container') as HTMLElement
 );
 const dataModel = new AppDataModel();
+const orderElement = orderTemplate.content.cloneNode(true) as HTMLElement;
+const orderForm = new OrderForm(orderElement as HTMLFormElement, dataModel);
 
 async function loadProducts() {
 	try {
@@ -76,6 +78,7 @@ function renderBasket(basketInstance: Basket, items: IBasketItem[]) {
 				) as HTMLElement;
 
 				if (basketItemElement) {
+					//todo
 					const basketItem = new BasketItem(basketItemElement, {
 						onClick: () => {
 							dataModel.removeFromBasket(item.id);
@@ -98,16 +101,13 @@ function renderBasket(basketInstance: Basket, items: IBasketItem[]) {
 		});
 	}
 
-	const total = items.reduce(
-		(sum, item) => sum + (item.price || 0),
-		0
-	);
+	const total = items.reduce((sum, item) => sum + (item.price || 0), 0);
 	priceElement.textContent = `${total} синапсов`;
 }
 
 function openBasket() {
 	const basketElement = basketTemplate.content.cloneNode(true) as HTMLElement;
-
+	//todo
 	const basketInstance = new Basket(
 		basketElement.querySelector('.basket') as HTMLElement
 	);
@@ -120,6 +120,7 @@ function openBasket() {
 }
 
 function openSuccessForm() {
+	//todo
 	const successElement = successTemplate.content.cloneNode(true) as HTMLElement;
 	const success = new Success(successElement, dataModel);
 	success.callback = () => {
@@ -133,15 +134,13 @@ function openContactsForm() {
 	const contactsElement = contactsTemplate.content.cloneNode(
 		true
 	) as HTMLElement;
+	//todo
 	new ContactForm(contactsElement as HTMLFormElement, dataModel);
 
 	modal.content = contactsElement;
 }
 
 function openOrderForm() {
-	const orderElement = orderTemplate.content.cloneNode(true) as HTMLElement;
-	new OrderForm(orderElement as HTMLFormElement, dataModel);
-
 	dataModel.order.items = dataModel.preparedBasketIds;
 	dataModel.order.total = dataModel.basketTotal;
 
@@ -154,6 +153,7 @@ dataModel.on('products:changed', (products: IBaseItem[]) => {
 			true
 		) as HTMLElement;
 		const cardButton = cardElement.querySelector('.card') as HTMLElement;
+		//todo
 		new Card(cardButton, product);
 		cardButton.addEventListener('click', () => {
 			dataModel.emit('item:openPreview', product);
@@ -167,6 +167,8 @@ dataModel.on('item:openPreview', (product: IBaseItem) => {
 	const previewElement = cardPreviewTemplate.content.cloneNode(
 		true
 	) as HTMLElement;
+	//todo
+
 	new CardPreview(
 		previewElement.querySelector('.card') as HTMLElement,
 		product
@@ -203,8 +205,7 @@ dataModel.on('contactsForm:submit', () => {
 				openSuccessForm();
 			}
 		});
-	} catch (error: unknown) {
-	}
+	} catch (error: unknown) {}
 });
 
 dataModel.on('orderForm:submit', () => {
