@@ -142,6 +142,7 @@ export class Form extends Component<IFormBase> {
 	}
 
 	render(data: Partial<IFormBase> = {}) {
+		console.log('Form render called, container:', this.container);
 		if (data.valid !== undefined) {
 			this.setDisabled(this._submitButton, !data.valid);
 		}

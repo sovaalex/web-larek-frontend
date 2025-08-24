@@ -49,12 +49,10 @@ export class AppDataModel extends EventEmitter {
 
 	addToBasket(product: IBaseItem) {
 		const existingItem = this._basket.find((item) => item.id === product.id);
-		if (existingItem) {
-			existingItem.quantity += 1;
-		} else {
-			this._basket.push({ ...product, quantity: 1 });
+		if (!existingItem) {
+			this._basket.push({ ...product });
+			this.emit('basket:changed', this._basket);
 		}
-		this.emit('basket:changed', this._basket);
 	}
 
 	removeFromBasket(id: string) {
@@ -67,26 +65,18 @@ export class AppDataModel extends EventEmitter {
 	}
 
 	get preparedBasketIds(): string[] {
-		const result: string[] = [];
-
-		for (const item of this._basket) {
-			for (let i = 0; i < item.quantity; i++) {
-				result.push(item.id);
-			}
-		}
-
-		return result;
+		return this._basket.map(item => item.id);
 	}
 
 	get basketTotal(): number {
 		return this._basket.reduce(
-			(total, item) => total + (item.price || 0) * item.quantity,
+			(total, item) => total + (item.price || 0),
 			0
 		);
 	}
 
 	get basketCount(): number {
-		return this._basket.reduce((total, item) => total + item.quantity, 0);
+		return this._basket.length;
 	}
 
 	clearBasket() {

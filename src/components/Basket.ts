@@ -29,7 +29,7 @@ export class Basket extends Component<IBasket> {
 
 	get total(): number {
 		return this._list.reduce(
-			(sum, item) => sum + (item.price || 0) * item.quantity,
+			(sum, item) => sum + (item.price || 0),
 			0
 		);
 	}

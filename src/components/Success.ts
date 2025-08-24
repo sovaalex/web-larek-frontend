@@ -9,12 +9,10 @@ export class Success extends Component<ISuccess> {
 
 	constructor(container: HTMLElement, dataModel: AppDataModel) {
 		super(container);
-
 		this._button = container.querySelector<HTMLButtonElement>('button');
 		this._label = container.querySelector<HTMLParagraphElement>('p');
-
 		this._label.innerHTML = `Списано ${dataModel.orderSuccess.total} синапсов`;
-
+		
 		this._button.addEventListener('click', () => {
 			if (typeof this._callback === 'function') {
 				this._callback();

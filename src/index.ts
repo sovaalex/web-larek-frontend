@@ -85,7 +85,7 @@ function renderBasket(basketInstance: Basket, items: IBasketItem[]) {
 
 					basketItem.id = item.id;
 					basketItem.title = `${item.title}`;
-					basketItem.price = item.price * item.quantity;
+					basketItem.price = item.price;
 					basketItem.index = String(index + 1);
 
 					itemsElement.appendChild(basketItemElement);
@@ -99,7 +99,7 @@ function renderBasket(basketInstance: Basket, items: IBasketItem[]) {
 	}
 
 	const total = items.reduce(
-		(sum, item) => sum + (item.price || 0) * item.quantity,
+		(sum, item) => sum + (item.price || 0),
 		0
 	);
 	priceElement.textContent = `${total} синапсов`;
