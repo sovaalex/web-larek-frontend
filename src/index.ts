@@ -12,6 +12,7 @@ import { AppDataModel } from './components/DataModel';
 import { API_URL, CDN_URL } from './utils/constants';
 import { IBaseItem, IBasketItem } from './types';
 import { Success } from './components/Success';
+import { cloneTemplate } from './utils/utils';
 
 const cardCatalogTemplate = document.querySelector(
 	'#card-catalog'
@@ -34,8 +35,9 @@ const modal = new Modal(
 	document.querySelector('#modal-container') as HTMLElement
 );
 const dataModel = new AppDataModel();
-const orderElement = orderTemplate.content.cloneNode(true) as HTMLElement;
-const orderForm = new OrderForm(orderElement as HTMLFormElement, dataModel);
+const orderForm = new OrderForm(cloneTemplate(orderTemplate), dataModel);
+const contactForm = new ContactForm(cloneTemplate(contactsTemplate), dataModel);
+const success = new Success(cloneTemplate(successTemplate), dataModel);
 
 async function loadProducts() {
 	try {
@@ -78,7 +80,6 @@ function renderBasket(basketInstance: Basket, items: IBasketItem[]) {
 				) as HTMLElement;
 
 				if (basketItemElement) {
-					//todo
 					const basketItem = new BasketItem(basketItemElement, {
 						onClick: () => {
 							dataModel.removeFromBasket(item.id);
@@ -107,7 +108,6 @@ function renderBasket(basketInstance: Basket, items: IBasketItem[]) {
 
 function openBasket() {
 	const basketElement = basketTemplate.content.cloneNode(true) as HTMLElement;
-	//todo
 	const basketInstance = new Basket(
 		basketElement.querySelector('.basket') as HTMLElement
 	);
@@ -120,7 +120,6 @@ function openBasket() {
 }
 
 function openSuccessForm() {
-	//todo
 	const successElement = successTemplate.content.cloneNode(true) as HTMLElement;
 	const success = new Success(successElement, dataModel);
 	success.callback = () => {
@@ -131,20 +130,14 @@ function openSuccessForm() {
 }
 
 function openContactsForm() {
-	const contactsElement = contactsTemplate.content.cloneNode(
-		true
-	) as HTMLElement;
-	//todo
-	new ContactForm(contactsElement as HTMLFormElement, dataModel);
-
-	modal.content = contactsElement;
+	modal.content = contactForm.render();
 }
 
 function openOrderForm() {
 	dataModel.order.items = dataModel.preparedBasketIds;
 	dataModel.order.total = dataModel.basketTotal;
 
-	modal.content = orderElement;
+	modal.content = orderForm.render();
 }
 
 dataModel.on('products:changed', (products: IBaseItem[]) => {
@@ -153,7 +146,6 @@ dataModel.on('products:changed', (products: IBaseItem[]) => {
 			true
 		) as HTMLElement;
 		const cardButton = cardElement.querySelector('.card') as HTMLElement;
-		//todo
 		new Card(cardButton, product);
 		cardButton.addEventListener('click', () => {
 			dataModel.emit('item:openPreview', product);
@@ -167,7 +159,6 @@ dataModel.on('item:openPreview', (product: IBaseItem) => {
 	const previewElement = cardPreviewTemplate.content.cloneNode(
 		true
 	) as HTMLElement;
-	//todo
 
 	new CardPreview(
 		previewElement.querySelector('.card') as HTMLElement,
