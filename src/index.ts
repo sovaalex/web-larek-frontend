@@ -10,7 +10,7 @@ import { OrderForm } from './components/OrderForm';
 import { ContactForm } from './components/ContactForm';
 import { AppDataModel } from './components/DataModel';
 import { API_URL, CDN_URL } from './utils/constants';
-import { IBaseItem } from './types';
+import { IBaseItem, IBasketItem } from './types';
 import { Success } from './components/Success';
 import { cloneTemplate } from './utils/utils';
 
@@ -56,8 +56,8 @@ function openSuccessForm() {
 	successElement.callback = () => {
 		modal.close();
 	};
-	dataModel.clearBasket();
 	modal.content = successElement.render();
+	dataModel.clearBasket();
 }
 
 function openContactsForm() {
@@ -101,7 +101,7 @@ dataModel.on('item:openPreview', (product: IBaseItem) => {
 	modal.open();
 });
 
-dataModel.on('addToBasket', (product: IBaseItem) => {
+dataModel.on('addToBasket', (product: IBasketItem) => {
 	dataModel.addToBasket(product);
 	modal.close();
 });
@@ -133,11 +133,11 @@ function renderBasketItems() {
 					},
 				});
 				basketItem.index = String(index + 1);
-				return basketItemElement;
+				return basketItem.render();
 			}
 		}
 		return document.createElement('div');
-	}).filter(item => item instanceof HTMLElement);
+	})
 	basket.items = basketItems as HTMLElement[];
 
 	basket.total = dataModel.basketTotal;
@@ -146,9 +146,7 @@ function renderBasketItems() {
 
 dataModel.on('basket:changed', renderBasketItems);
 
-dataModel.on('orderForm: open', () => {
-	openOrderForm()
-})
+dataModel.on('orderForm: open', openOrderForm)
 
 dataModel.on('contactsForm:submit', () => {
 	try {

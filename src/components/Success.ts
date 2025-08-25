@@ -4,19 +4,17 @@ import { AppDataModel } from './DataModel';
 
 export class Success extends Component<ISuccess> {
 	protected _button: HTMLButtonElement;
-	protected _label: HTMLParagraphElement;
+	protected _description: HTMLParagraphElement;
+	protected _title: HTMLHeadingElement;
 	protected _callback: () => void;
 
 	constructor(container: HTMLElement, dataModel: AppDataModel) {
 		super(container);
-		this._button = container.querySelector<HTMLButtonElement>('button');
-		this._label = container.querySelector<HTMLParagraphElement>('p');
+		this._button = container.querySelector<HTMLButtonElement>('.order-success__close');
+		this._description = container.querySelector<HTMLParagraphElement>('.order-success__description');
+		this._title = container.querySelector<HTMLHeadingElement>('.order-success__title');
 
-		if (dataModel.orderSuccess && dataModel.orderSuccess.total !== undefined) {
-			this._label.innerHTML = `Списано ${dataModel.orderSuccess.total} синапсов`;
-		} else {
-			this._label.innerHTML = 'Заказ успешно оформлен';
-		}
+		this.updateContent(dataModel);
 		
 		this._button.addEventListener('click', () => {
 			if (typeof this._callback === 'function') {
@@ -25,7 +23,19 @@ export class Success extends Component<ISuccess> {
 		});
 	}
 
+	private updateContent(dataModel: AppDataModel) {
+		if (dataModel.orderSuccess) {
+			this._description.textContent = `Списано ${dataModel.basketTotal} синапсов`;
+		} 
+	}
+
 	set callback(callback: () => void) {
 		this._callback = callback;
+	}
+
+	render(data?: Partial<ISuccess>): HTMLElement {
+		Object.assign(this as any, data);
+		this.updateContent
+		return this.container;
 	}
 }

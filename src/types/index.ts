@@ -13,6 +13,7 @@ export interface IBaseItem {
 }
 
 export interface IBasketItem extends IBaseItem {
+	index: number | string;
 }
 
 export interface IModalData {

@@ -47,7 +47,7 @@ export class AppDataModel extends EventEmitter {
 		return this._products.find((product) => product.id === id);
 	}
 
-	addToBasket(product: IBaseItem) {
+	addToBasket(product: IBasketItem) {
 		const existingItem = this._basket.find((item) => item.id === product.id);
 		if (!existingItem) {
 			this._basket.push({ ...product });
