@@ -1,5 +1,5 @@
 import { Form } from './Form';
-import { IOrderForm } from '../types';
+import { IOrderForm, IFormBase } from '../types';
 import { AppDataModel } from './DataModel';
 
 export class OrderForm extends Form {
@@ -37,20 +37,19 @@ export class OrderForm extends Form {
 	}
 
 	protected bindPaymentEvents() {
-		if (this._cardButton) {
-			this._cardButton.addEventListener('click', () =>
-				this.selectPayment('card')
-			);
-		}
+		this.container.addEventListener('click', (event) => {
+			const target = event.target as HTMLElement;
+			if (target.closest('.button[name="card"]')) {
+				this.selectPayment('card');
+			} else if (target.closest('.button[name="cash"]')) {
+				this.selectPayment('cash');
+			}
+		});
 
-		if (this._cashButton) {
-			this._cashButton.addEventListener('click', () =>
-				this.selectPayment('cash')
-			);
-		}
-
-		if (this._orderForm) {
-			this._orderForm.addEventListener('submit', (event) => {
+		this.container.addEventListener('submit', (event) => {
+			const target = event.target as HTMLElement;
+			if (target.closest('form[name="order"]')) {
+				console.log('OrderForm submit event triggered via delegation');
 				for (const [key] of this.fields) {
 					this._dataModel.setOrderField(
 						key as keyof IOrderForm,
@@ -59,10 +58,9 @@ export class OrderForm extends Form {
 				}
 
 				this._dataModel.emit('orderForm:submit');
-
 				event.preventDefault();
-			});
-		}
+			}
+		});
 	}
 
 	protected selectPayment(payment: string) {

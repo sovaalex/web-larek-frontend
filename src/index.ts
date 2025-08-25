@@ -37,7 +37,8 @@ const modal = new Modal(
 const dataModel = new AppDataModel();
 const orderForm = new OrderForm(cloneTemplate(orderTemplate), dataModel);
 const contactForm = new ContactForm(cloneTemplate(contactsTemplate), dataModel);
-const success = new Success(cloneTemplate(successTemplate), dataModel);
+const successElement = new Success(cloneTemplate(successTemplate), dataModel);
+const basket = new Basket(cloneTemplate(basketTemplate))
 
 async function loadProducts() {
 	try {
@@ -107,26 +108,20 @@ function renderBasket(basketInstance: Basket, items: IBasketItem[]) {
 }
 
 function openBasket() {
-	const basketElement = basketTemplate.content.cloneNode(true) as HTMLElement;
-	const basketInstance = new Basket(
-		basketElement.querySelector('.basket') as HTMLElement
-	);
-	basketInstance.items = dataModel.basket;
+	basket.items = dataModel.basket;
 
-	renderBasket(basketInstance, dataModel.basket);
+	renderBasket(basket, dataModel.basket);
 
-	modal.content = basketElement;
+	modal.content = basket.render();
 	modal.open();
 }
 
 function openSuccessForm() {
-	const successElement = successTemplate.content.cloneNode(true) as HTMLElement;
-	const success = new Success(successElement, dataModel);
-	success.callback = () => {
+	successElement.callback = () => {
 		modal.close();
 	};
 	dataModel.clearBasket();
-	modal.content = successElement;
+	modal.content = successElement.render();
 }
 
 function openContactsForm() {

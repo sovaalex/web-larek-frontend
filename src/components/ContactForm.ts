@@ -20,8 +20,11 @@ export class ContactForm extends Form {
 	}
 
 	protected bindPaymentEvents() {
-		if (this._contactForm) {
-			this._contactForm.addEventListener('submit', (event) => {
+		// Use event delegation for form submission
+		this.container.addEventListener('submit', (event) => {
+			const target = event.target as HTMLElement;
+			if (target.closest('form[name="contacts"]')) {
+				console.log('ContactForm submit event triggered via delegation');
 				for (const [key] of this.fields) {
 					this._dataModel.setContactsField(
 						key as keyof IContactsForm,
@@ -30,10 +33,9 @@ export class ContactForm extends Form {
 				}
 
 				this._dataModel.emit('contactsForm:submit');
-
 				event.preventDefault();
-			});
-		}
+			}
+		});
 	}
 
 	protected validateField(name: string): boolean {
