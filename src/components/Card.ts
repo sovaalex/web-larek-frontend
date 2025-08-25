@@ -17,26 +17,24 @@ export class Card extends Component<IBaseItem> {
 		protected card: IBaseItem,
 		actions?: IClick
 	) {
-		super(container);
-		this._title = ensureElement<HTMLElement>('.card__title', container);
-		this._image = ensureElement<HTMLImageElement>('.card__image', container);
-		this._category = ensureElement<HTMLElement>('.card__category', container);
-		this._price = ensureElement<HTMLElement>('.card__price', container);
-		this._description = container.querySelector('.card__text') as HTMLElement;
-		this._button = container.querySelector(
+		const cardElement = container.querySelector('.card') as HTMLElement || container;
+		super(cardElement);
+		
+		this._title = ensureElement<HTMLElement>('.card__title', this.container);
+		this._image = ensureElement<HTMLImageElement>('.card__image', this.container);
+		this._category = ensureElement<HTMLElement>('.card__category', this.container);
+		this._price = ensureElement<HTMLElement>('.card__price', this.container);
+		this._description = this.container.querySelector('.card__text') as HTMLElement;
+		this._button = this.container.querySelector(
 			'.card__button'
 		) as HTMLButtonElement;
-		this._index = container.querySelector('.basket__item-index') as HTMLElement;
+		this._index = this.container.querySelector('.basket__item-index') as HTMLElement;
 
-		if (actions) {
-			this.container.addEventListener('click', (event: MouseEvent) => {
-				if (actions.onClick) {
-					actions.onClick(event);
-				}
-			});
-		}
-
-		this.render();
+		this.container.addEventListener('click', (event: MouseEvent) => {
+			if (actions?.onClick) {
+				actions.onClick(event);
+			}
+		});
 	}
 
 	set id(value: string) {

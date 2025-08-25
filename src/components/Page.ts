@@ -1,14 +1,17 @@
 import { IPage } from '../types';
 import { Component } from './base/component';
+import { EventEmitter } from './base/events';
 
 export class Page extends Component<IPage> {
 	protected _itemCatalog: HTMLElement;
 	protected _basketCounter: HTMLElement;
 	protected _wrapper: HTMLElement;
 	protected _basket: HTMLElement;
+	protected events: EventEmitter;
 
-	constructor(container: HTMLElement) {
+	constructor(container: HTMLElement, events: EventEmitter) {
 		super(container);
+		this.events = events;
 
 		this._itemCatalog = container.querySelector('.gallery') as HTMLElement;
 		this._basketCounter = container.querySelector(
@@ -18,7 +21,7 @@ export class Page extends Component<IPage> {
 		this._basket = container.querySelector('.header__basket') as HTMLElement;
 
 		this._basket.addEventListener('click', () => {
-			document.dispatchEvent(new CustomEvent('basket:open'));
+			this.events.emit('basket:open');
 		});
 	}
 

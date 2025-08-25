@@ -1,5 +1,5 @@
 import { Form } from './Form';
-import { IOrderForm, IFormBase } from '../types';
+import { IOrderForm } from '../types';
 import { AppDataModel } from './DataModel';
 
 export class OrderForm extends Form {
@@ -49,7 +49,6 @@ export class OrderForm extends Form {
 		this.container.addEventListener('submit', (event) => {
 			const target = event.target as HTMLElement;
 			if (target.closest('form[name="order"]')) {
-				console.log('OrderForm submit event triggered via delegation');
 				for (const [key] of this.fields) {
 					this._dataModel.setOrderField(
 						key as keyof IOrderForm,

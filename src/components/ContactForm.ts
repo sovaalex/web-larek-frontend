@@ -20,11 +20,9 @@ export class ContactForm extends Form {
 	}
 
 	protected bindPaymentEvents() {
-		// Use event delegation for form submission
 		this.container.addEventListener('submit', (event) => {
 			const target = event.target as HTMLElement;
 			if (target.closest('form[name="contacts"]')) {
-				console.log('ContactForm submit event triggered via delegation');
 				for (const [key] of this.fields) {
 					this._dataModel.setContactsField(
 						key as keyof IContactsForm,

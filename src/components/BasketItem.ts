@@ -8,7 +8,7 @@ export class BasketItem extends Component<IBasketItem> {
 	protected _index: HTMLElement;
 	protected _button: HTMLButtonElement;
 
-	constructor(container: HTMLElement, actions?: IClick) {
+	constructor(container: HTMLElement, item: IBasketItem, actions?: IClick) {
 		super(container);
 
 		this._title = ensureElement<HTMLElement>('.card__title', container);
@@ -18,6 +18,10 @@ export class BasketItem extends Component<IBasketItem> {
 			'.basket__item-delete',
 			container
 		);
+
+		this.container.dataset.id = item.id;
+		this.setText(this._title, item.title);
+		this.setText(this._price, `${item.price} синапсов`);
 
 		if (actions?.onClick) {
 			this._button.addEventListener('click', actions.onClick);

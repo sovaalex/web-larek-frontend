@@ -11,8 +11,7 @@ export class Success extends Component<ISuccess> {
 		super(container);
 		this._button = container.querySelector<HTMLButtonElement>('button');
 		this._label = container.querySelector<HTMLParagraphElement>('p');
-		
-		// Добавляем проверку на null перед доступом к orderSuccess.total
+
 		if (dataModel.orderSuccess && dataModel.orderSuccess.total !== undefined) {
 			this._label.innerHTML = `Списано ${dataModel.orderSuccess.total} синапсов`;
 		} else {
